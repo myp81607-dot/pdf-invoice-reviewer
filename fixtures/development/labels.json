@@ -1,0 +1,296 @@
+[
+  {
+    "file": "01-normal.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1001",
+      "invoice_date": "2026-09-01",
+      "currency": "USD",
+      "subtotal": "198.75",
+      "tax": "19.88",
+      "total": "218.63"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "02-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1002",
+      "invoice_date": "2026-09-02",
+      "currency": "EUR",
+      "subtotal": "272.00",
+      "tax": "27.20",
+      "total": "299.20"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "03-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1003",
+      "invoice_date": "2026-09-03",
+      "currency": "USD",
+      "subtotal": "345.25",
+      "tax": "34.52",
+      "total": "379.77"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "04-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1004",
+      "invoice_date": "2026-09-04",
+      "currency": "EUR",
+      "subtotal": "418.50",
+      "tax": "41.85",
+      "total": "460.35"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "05-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1005",
+      "invoice_date": "2026-09-05",
+      "currency": "USD",
+      "subtotal": "491.75",
+      "tax": "49.18",
+      "total": "540.93"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "06-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1006",
+      "invoice_date": "2026-09-06",
+      "currency": "EUR",
+      "subtotal": "565.00",
+      "tax": "56.50",
+      "total": "621.50"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "07-amount-mismatch.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1007",
+      "invoice_date": "2026-09-07",
+      "currency": "USD",
+      "subtotal": "638.25",
+      "tax": "63.82",
+      "total": "707.07"
+    },
+    "expected_issues": [
+      "amount_mismatch"
+    ],
+    "scan": false
+  },
+  {
+    "file": "08-missing-tax.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1008",
+      "invoice_date": "2026-09-08",
+      "currency": "EUR",
+      "subtotal": "711.50",
+      "tax": null,
+      "total": "782.65"
+    },
+    "expected_issues": [
+      "missing"
+    ],
+    "scan": false
+  },
+  {
+    "file": "09-cross-page.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1009",
+      "invoice_date": "2026-09-09",
+      "currency": "USD",
+      "subtotal": "784.75",
+      "tax": "78.48",
+      "total": "863.23"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "10-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1010",
+      "invoice_date": "2026-09-10",
+      "currency": "EUR",
+      "subtotal": "858.00",
+      "tax": "85.80",
+      "total": "943.80"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "11-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1011",
+      "invoice_date": "2026-09-11",
+      "currency": "USD",
+      "subtotal": "931.25",
+      "tax": "93.12",
+      "total": "1024.37"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "12-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1012",
+      "invoice_date": "2026-09-12",
+      "currency": "EUR",
+      "subtotal": "1004.50",
+      "tax": "100.45",
+      "total": "1104.95"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "13-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1013",
+      "invoice_date": "2026-09-13",
+      "currency": "USD",
+      "subtotal": "1077.75",
+      "tax": "107.78",
+      "total": "1185.53"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "14-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1014",
+      "invoice_date": "2026-09-14",
+      "currency": "EUR",
+      "subtotal": "1151.00",
+      "tax": "115.10",
+      "total": "1266.10"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "15-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1015",
+      "invoice_date": "2026-09-15",
+      "currency": "USD",
+      "subtotal": "1224.25",
+      "tax": "122.42",
+      "total": "1346.67"
+    },
+    "expected_issues": [],
+    "scan": false
+  },
+  {
+    "file": "16-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1016",
+      "invoice_date": "2026-09-16",
+      "currency": "EUR",
+      "subtotal": "1297.50",
+      "tax": "129.75",
+      "total": "1432.25"
+    },
+    "expected_issues": [
+      "amount_mismatch"
+    ],
+    "scan": false
+  },
+  {
+    "file": "17-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1017",
+      "invoice_date": null,
+      "currency": "USD",
+      "subtotal": "1370.75",
+      "tax": "137.08",
+      "total": "1507.83"
+    },
+    "expected_issues": [
+      "missing"
+    ],
+    "scan": false
+  },
+  {
+    "file": "18-sample.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1018",
+      "invoice_date": "09/18/2026",
+      "currency": "EUR",
+      "subtotal": "1444.00",
+      "tax": "144.40",
+      "total": "1588.40"
+    },
+    "expected_issues": [
+      "date"
+    ],
+    "scan": false
+  },
+  {
+    "file": "19-sample.pdf",
+    "fields": {
+      "supplier": "Northstar Office Supply",
+      "invoice_number": "DEMO-1019",
+      "invoice_date": "2026-09-19",
+      "currency": "XYZ",
+      "subtotal": "1517.25",
+      "tax": "151.72",
+      "total": "1668.97"
+    },
+    "expected_issues": [
+      "currency"
+    ],
+    "scan": false
+  },
+  {
+    "file": "20-scan-unsupported.pdf",
+    "fields": {
+      "supplier": "Harbor IT Services",
+      "invoice_number": "DEMO-1020",
+      "invoice_date": "2026-09-20",
+      "currency": "EUR",
+      "subtotal": "1590.50",
+      "tax": "159.05",
+      "total": "1749.55"
+    },
+    "expected_issues": [
+      "document"
+    ],
+    "scan": true
+  }
+]

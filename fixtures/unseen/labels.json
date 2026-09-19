@@ -1,0 +1,92 @@
+[
+  {
+    "file": "unseen_01.pdf",
+    "case": "valid",
+    "pages": 1,
+    "expected": {
+      "supplier": "Cedar Workshop Services Ltd",
+      "invoice_number": "CWS-7306",
+      "invoice_date": "2026-08-14",
+      "currency": "USD",
+      "subtotal": "840.00",
+      "tax": "84.00",
+      "total": "924.00"
+    },
+    "purpose": "Ordinary valid invoice; base for the changed-input case."
+  },
+  {
+    "file": "unseen_02.pdf",
+    "case": "valid",
+    "pages": 1,
+    "expected": {
+      "supplier": "Marlow Print Cooperative",
+      "invoice_number": "MPC-1942",
+      "invoice_date": "2026-08-19",
+      "currency": "EUR",
+      "subtotal": "1560.00",
+      "tax": "312.00",
+      "total": "1872.00"
+    },
+    "purpose": "Valid invoice with a different supplier, currency, and amounts."
+  },
+  {
+    "file": "unseen_03.pdf",
+    "case": "valid",
+    "pages": 2,
+    "expected": {
+      "supplier": "Harbor Technical Studio",
+      "invoice_number": "HTS-2681",
+      "invoice_date": "2026-09-02",
+      "currency": "GBP",
+      "subtotal": "2100.00",
+      "tax": "420.00",
+      "total": "2520.00"
+    },
+    "purpose": "Valid two-page invoice: identity on page one, currency and totals on page two."
+  },
+  {
+    "file": "unseen_04.pdf",
+    "case": "valid",
+    "pages": 1,
+    "expected": {
+      "supplier": "Cedar Workshop Services Ltd",
+      "invoice_number": "CWS-7319",
+      "invoice_date": "2026-09-11",
+      "currency": "USD",
+      "subtotal": "1110.00",
+      "tax": "111.00",
+      "total": "1221.00"
+    },
+    "purpose": "Changed input compared with unseen_01: number, date, quantities, price, and all totals differ."
+  },
+  {
+    "file": "unseen_05.pdf",
+    "case": "missing_field",
+    "pages": 1,
+    "expected": {
+      "supplier": "Pine River Office Supply",
+      "invoice_number": "PRO-5107",
+      "invoice_date": null,
+      "currency": "CNY",
+      "subtotal": "750.00",
+      "tax": "45.00",
+      "total": "795.00"
+    },
+    "purpose": "Invoice date is genuinely absent; all amounts reconcile."
+  },
+  {
+    "file": "unseen_06.pdf",
+    "case": "amount_mismatch",
+    "pages": 1,
+    "expected": {
+      "supplier": "Willow Facility Care",
+      "invoice_number": "WFC-8840",
+      "invoice_date": "2026-09-05",
+      "currency": "EUR",
+      "subtotal": "960.00",
+      "tax": "192.00",
+      "total": "1010.00"
+    },
+    "purpose": "Printed total is intentionally inconsistent with subtotal plus tax; labels preserve printed values."
+  }
+]

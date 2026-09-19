@@ -1,0 +1,170 @@
+{
+  "corpus": "Fern & Field independent held-out layout",
+  "synthetic": true,
+  "layout_families": 1,
+  "document_count": 10,
+  "text_pdf_count": 10,
+  "scan_count": 0,
+  "field_names": [
+    "supplier",
+    "invoice_number",
+    "invoice_date",
+    "currency",
+    "subtotal",
+    "tax",
+    "total"
+  ],
+  "label_contract": "Amounts are exact base-10 strings; dates are ISO 8601; null means absent from the source. expected_issues describes source defects, independent of parser wording.",
+  "cases": [
+    {
+      "file": "01_standard_usd.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260901",
+        "invoice_date": "2026-09-01",
+        "currency": "USD",
+        "subtotal": "1200.00",
+        "tax": "96.00",
+        "total": "1296.00"
+      },
+      "expected_issues": []
+    },
+    {
+      "file": "02_zero_tax.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260902",
+        "invoice_date": "2026-09-02",
+        "currency": "USD",
+        "subtotal": "420.00",
+        "tax": "0.00",
+        "total": "420.00"
+      },
+      "expected_issues": []
+    },
+    {
+      "file": "03_gbp_decimals.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260903",
+        "invoice_date": "2026-09-03",
+        "currency": "GBP",
+        "subtotal": "165.50",
+        "tax": "33.10",
+        "total": "198.60"
+      },
+      "expected_issues": []
+    },
+    {
+      "file": "04_thousands_separator.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260904",
+        "invoice_date": "2026-09-04",
+        "currency": "EUR",
+        "subtotal": "9987.65",
+        "tax": "1997.53",
+        "total": "11985.18"
+      },
+      "expected_issues": []
+    },
+    {
+      "file": "05_cross_page.pdf",
+      "pages": 2,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260905",
+        "invoice_date": "2026-09-05",
+        "currency": "USD",
+        "subtotal": "1800.00",
+        "tax": "144.00",
+        "total": "1944.00"
+      },
+      "expected_issues": []
+    },
+    {
+      "file": "06_missing_reference.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": null,
+        "invoice_date": "2026-09-06",
+        "currency": "USD",
+        "subtotal": "600.00",
+        "tax": "48.00",
+        "total": "648.00"
+      },
+      "expected_issues": [
+        "missing:invoice_number"
+      ]
+    },
+    {
+      "file": "07_missing_date.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260907",
+        "invoice_date": null,
+        "currency": "USD",
+        "subtotal": "280.00",
+        "tax": "22.40",
+        "total": "302.40"
+      },
+      "expected_issues": [
+        "missing:invoice_date"
+      ]
+    },
+    {
+      "file": "08_missing_tax.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260908",
+        "invoice_date": "2026-09-08",
+        "currency": "USD",
+        "subtotal": "800.00",
+        "tax": null,
+        "total": "864.00"
+      },
+      "expected_issues": [
+        "missing:tax"
+      ]
+    },
+    {
+      "file": "09_total_mismatch.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": "Fern & Field Office Supply",
+        "invoice_number": "FF-260909",
+        "invoice_date": "2026-09-09",
+        "currency": "USD",
+        "subtotal": "300.00",
+        "tax": "24.00",
+        "total": "340.00"
+      },
+      "expected_issues": [
+        "amount_mismatch"
+      ]
+    },
+    {
+      "file": "10_missing_supplier.pdf",
+      "pages": 1,
+      "fields": {
+        "supplier": null,
+        "invoice_number": "FF-260910",
+        "invoice_date": "2026-09-10",
+        "currency": "USD",
+        "subtotal": "950.00",
+        "tax": "76.00",
+        "total": "1026.00"
+      },
+      "expected_issues": [
+        "missing:supplier"
+      ]
+    }
+  ]
+}

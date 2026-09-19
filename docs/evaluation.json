@@ -1,0 +1,709 @@
+{
+  "environment": {
+    "python": "3.12.14",
+    "system": "Windows"
+  },
+  "method": "Exact normalized field equality; null slots separate; one scan excluded from text extraction denominator and reported separately. No human corrections before scoring. All uploaded documents require human review (100%).",
+  "development": {
+    "summary": {
+      "documents": 20,
+      "text_documents": 19,
+      "present_fields": 131,
+      "correct_present_fields": 131,
+      "null_fields": 2,
+      "correct_null_fields": 2,
+      "all_seven_slots_correct": 19,
+      "complete_documents": 17,
+      "complete_documents_all_fields_correct": 17,
+      "checks_passed": 13,
+      "checks_blocked": 6,
+      "source_valid_passed": 13,
+      "source_valid_blocked": 0,
+      "source_invalid_passed": 0,
+      "source_invalid_blocked": 6,
+      "scans_blocked": 1,
+      "elapsed_seconds": 0.125
+    },
+    "documents": [
+      {
+        "file": "01-normal.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1001",
+          "invoice_date": "2026-09-01",
+          "currency": "USD",
+          "subtotal": "198.75",
+          "tax": "19.88",
+          "total": "218.63"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "02-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1002",
+          "invoice_date": "2026-09-02",
+          "currency": "EUR",
+          "subtotal": "272.00",
+          "tax": "27.20",
+          "total": "299.20"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "03-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1003",
+          "invoice_date": "2026-09-03",
+          "currency": "USD",
+          "subtotal": "345.25",
+          "tax": "34.52",
+          "total": "379.77"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "04-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1004",
+          "invoice_date": "2026-09-04",
+          "currency": "EUR",
+          "subtotal": "418.50",
+          "tax": "41.85",
+          "total": "460.35"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "05-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1005",
+          "invoice_date": "2026-09-05",
+          "currency": "USD",
+          "subtotal": "491.75",
+          "tax": "49.18",
+          "total": "540.93"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "06-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1006",
+          "invoice_date": "2026-09-06",
+          "currency": "EUR",
+          "subtotal": "565.00",
+          "tax": "56.50",
+          "total": "621.50"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "07-amount-mismatch.pdf",
+        "scan": false,
+        "expected_issues": [
+          "amount_mismatch"
+        ],
+        "actual_issue_codes": [
+          "amount_mismatch"
+        ],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1007",
+          "invoice_date": "2026-09-07",
+          "currency": "USD",
+          "subtotal": "638.25",
+          "tax": "63.82",
+          "total": "707.07"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "08-missing-tax.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1008",
+          "invoice_date": "2026-09-08",
+          "currency": "EUR",
+          "subtotal": "711.50",
+          "tax": null,
+          "total": "782.65"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "09-cross-page.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1009",
+          "invoice_date": "2026-09-09",
+          "currency": "USD",
+          "subtotal": "784.75",
+          "tax": "78.48",
+          "total": "863.23"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "10-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1010",
+          "invoice_date": "2026-09-10",
+          "currency": "EUR",
+          "subtotal": "858.00",
+          "tax": "85.80",
+          "total": "943.80"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "11-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1011",
+          "invoice_date": "2026-09-11",
+          "currency": "USD",
+          "subtotal": "931.25",
+          "tax": "93.12",
+          "total": "1024.37"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "12-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1012",
+          "invoice_date": "2026-09-12",
+          "currency": "EUR",
+          "subtotal": "1004.50",
+          "tax": "100.45",
+          "total": "1104.95"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "13-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1013",
+          "invoice_date": "2026-09-13",
+          "currency": "USD",
+          "subtotal": "1077.75",
+          "tax": "107.78",
+          "total": "1185.53"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "14-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1014",
+          "invoice_date": "2026-09-14",
+          "currency": "EUR",
+          "subtotal": "1151.00",
+          "tax": "115.10",
+          "total": "1266.10"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "15-sample.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1015",
+          "invoice_date": "2026-09-15",
+          "currency": "USD",
+          "subtotal": "1224.25",
+          "tax": "122.42",
+          "total": "1346.67"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "16-sample.pdf",
+        "scan": false,
+        "expected_issues": [
+          "amount_mismatch"
+        ],
+        "actual_issue_codes": [
+          "amount_mismatch"
+        ],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1016",
+          "invoice_date": "2026-09-16",
+          "currency": "EUR",
+          "subtotal": "1297.50",
+          "tax": "129.75",
+          "total": "1432.25"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "17-sample.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1017",
+          "invoice_date": null,
+          "currency": "USD",
+          "subtotal": "1370.75",
+          "tax": "137.08",
+          "total": "1507.83"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "18-sample.pdf",
+        "scan": false,
+        "expected_issues": [
+          "date"
+        ],
+        "actual_issue_codes": [
+          "date"
+        ],
+        "fields": {
+          "supplier": "Harbor IT Services",
+          "invoice_number": "DEMO-1018",
+          "invoice_date": "09/18/2026",
+          "currency": "EUR",
+          "subtotal": "1444.00",
+          "tax": "144.40",
+          "total": "1588.40"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "19-sample.pdf",
+        "scan": false,
+        "expected_issues": [
+          "currency"
+        ],
+        "actual_issue_codes": [
+          "currency"
+        ],
+        "fields": {
+          "supplier": "Northstar Office Supply",
+          "invoice_number": "DEMO-1019",
+          "invoice_date": "2026-09-19",
+          "currency": "XYZ",
+          "subtotal": "1517.25",
+          "tax": "151.72",
+          "total": "1668.97"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "20-scan-unsupported.pdf",
+        "scan": true,
+        "expected_issues": [
+          "document"
+        ],
+        "actual_issue_codes": [
+          "document",
+          "missing"
+        ],
+        "fields": {
+          "supplier": null,
+          "invoice_number": null,
+          "invoice_date": null,
+          "currency": null,
+          "subtotal": null,
+          "tax": null,
+          "total": null
+        },
+        "mismatches": []
+      }
+    ]
+  },
+  "regression": {
+    "summary": {
+      "documents": 10,
+      "text_documents": 10,
+      "present_fields": 66,
+      "correct_present_fields": 66,
+      "null_fields": 4,
+      "correct_null_fields": 4,
+      "all_seven_slots_correct": 10,
+      "complete_documents": 6,
+      "complete_documents_all_fields_correct": 6,
+      "checks_passed": 5,
+      "checks_blocked": 5,
+      "source_valid_passed": 5,
+      "source_valid_blocked": 0,
+      "source_invalid_passed": 0,
+      "source_invalid_blocked": 5,
+      "scans_blocked": 0,
+      "elapsed_seconds": 0.097
+    },
+    "documents": [
+      {
+        "file": "01_standard_usd.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260901",
+          "invoice_date": "2026-09-01",
+          "currency": "USD",
+          "subtotal": "1200.00",
+          "tax": "96.00",
+          "total": "1296.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "02_zero_tax.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260902",
+          "invoice_date": "2026-09-02",
+          "currency": "USD",
+          "subtotal": "420.00",
+          "tax": "0.00",
+          "total": "420.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "03_gbp_decimals.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260903",
+          "invoice_date": "2026-09-03",
+          "currency": "GBP",
+          "subtotal": "165.50",
+          "tax": "33.10",
+          "total": "198.60"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "04_thousands_separator.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260904",
+          "invoice_date": "2026-09-04",
+          "currency": "EUR",
+          "subtotal": "9987.65",
+          "tax": "1997.53",
+          "total": "11985.18"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "05_cross_page.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260905",
+          "invoice_date": "2026-09-05",
+          "currency": "USD",
+          "subtotal": "1800.00",
+          "tax": "144.00",
+          "total": "1944.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "06_missing_reference.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing:invoice_number"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": null,
+          "invoice_date": "2026-09-06",
+          "currency": "USD",
+          "subtotal": "600.00",
+          "tax": "48.00",
+          "total": "648.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "07_missing_date.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing:invoice_date"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260907",
+          "invoice_date": null,
+          "currency": "USD",
+          "subtotal": "280.00",
+          "tax": "22.40",
+          "total": "302.40"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "08_missing_tax.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing:tax"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260908",
+          "invoice_date": "2026-09-08",
+          "currency": "USD",
+          "subtotal": "800.00",
+          "tax": null,
+          "total": "864.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "09_total_mismatch.pdf",
+        "scan": false,
+        "expected_issues": [
+          "amount_mismatch"
+        ],
+        "actual_issue_codes": [
+          "amount_mismatch"
+        ],
+        "fields": {
+          "supplier": "Fern & Field Office Supply",
+          "invoice_number": "FF-260909",
+          "invoice_date": "2026-09-09",
+          "currency": "USD",
+          "subtotal": "300.00",
+          "tax": "24.00",
+          "total": "340.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "10_missing_supplier.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing:supplier"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": null,
+          "invoice_number": "FF-260910",
+          "invoice_date": "2026-09-10",
+          "currency": "USD",
+          "subtotal": "950.00",
+          "tax": "76.00",
+          "total": "1026.00"
+        },
+        "mismatches": []
+      }
+    ]
+  },
+  "unseen": {
+    "summary": {
+      "documents": 6,
+      "text_documents": 6,
+      "present_fields": 41,
+      "correct_present_fields": 41,
+      "null_fields": 1,
+      "correct_null_fields": 1,
+      "all_seven_slots_correct": 6,
+      "complete_documents": 5,
+      "complete_documents_all_fields_correct": 5,
+      "checks_passed": 4,
+      "checks_blocked": 2,
+      "source_valid_passed": 4,
+      "source_valid_blocked": 0,
+      "source_invalid_passed": 0,
+      "source_invalid_blocked": 2,
+      "scans_blocked": 0,
+      "elapsed_seconds": 0.052
+    },
+    "documents": [
+      {
+        "file": "unseen_01.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Cedar Workshop Services Ltd",
+          "invoice_number": "CWS-7306",
+          "invoice_date": "2026-08-14",
+          "currency": "USD",
+          "subtotal": "840.00",
+          "tax": "84.00",
+          "total": "924.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "unseen_02.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Marlow Print Cooperative",
+          "invoice_number": "MPC-1942",
+          "invoice_date": "2026-08-19",
+          "currency": "EUR",
+          "subtotal": "1560.00",
+          "tax": "312.00",
+          "total": "1872.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "unseen_03.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Harbor Technical Studio",
+          "invoice_number": "HTS-2681",
+          "invoice_date": "2026-09-02",
+          "currency": "GBP",
+          "subtotal": "2100.00",
+          "tax": "420.00",
+          "total": "2520.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "unseen_04.pdf",
+        "scan": false,
+        "expected_issues": [],
+        "actual_issue_codes": [],
+        "fields": {
+          "supplier": "Cedar Workshop Services Ltd",
+          "invoice_number": "CWS-7319",
+          "invoice_date": "2026-09-11",
+          "currency": "USD",
+          "subtotal": "1110.00",
+          "tax": "111.00",
+          "total": "1221.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "unseen_05.pdf",
+        "scan": false,
+        "expected_issues": [
+          "missing_field"
+        ],
+        "actual_issue_codes": [
+          "missing"
+        ],
+        "fields": {
+          "supplier": "Pine River Office Supply",
+          "invoice_number": "PRO-5107",
+          "invoice_date": null,
+          "currency": "CNY",
+          "subtotal": "750.00",
+          "tax": "45.00",
+          "total": "795.00"
+        },
+        "mismatches": []
+      },
+      {
+        "file": "unseen_06.pdf",
+        "scan": false,
+        "expected_issues": [
+          "amount_mismatch"
+        ],
+        "actual_issue_codes": [
+          "amount_mismatch"
+        ],
+        "fields": {
+          "supplier": "Willow Facility Care",
+          "invoice_number": "WFC-8840",
+          "invoice_date": "2026-09-05",
+          "currency": "EUR",
+          "subtotal": "960.00",
+          "tax": "192.00",
+          "total": "1010.00"
+        },
+        "mismatches": []
+      }
+    ]
+  }
+}
