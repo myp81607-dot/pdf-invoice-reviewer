@@ -1,8 +1,30 @@
 # Evaluation notes
 
-Run date: 2026-09-19. Windows, Python 3.12.14. Dependencies are pinned in `requirements.txt`. The extraction results below are retained from the original release; the review-workflow revision has its own section.
+Verification date: 2026-09-19. Dependencies are pinned in `requirements.txt`. Latest runs and earlier extraction/review evidence are separated below.
 
 This is a small synthetic-document demonstration, not a benchmark for real supplier invoices. No real customer dataset, production deployment, savings or financial outcome was measured.
+
+## Latest reproducible run
+
+[CI run 35446565476 passed](https://github.com/myp81607-dot/pdf-invoice-reviewer/actions/runs/35446565476) on code commit [`087ba6b0b3c41f18581bccecde0ddd7c58b6bf2e`](https://github.com/myp81607-dot/pdf-invoice-reviewer/commit/087ba6b0b3c41f18581bccecde0ddd7c58b6bf2e). The application and tests are unchanged from `fa997e9`, used for the local and browser checks. The cited CI result belongs to `087ba6b`; later documentation commits are separate.
+
+| Environment | Python / Node | Python checks | Draft checks |
+|---|---|---|---|
+| GitHub Ubuntu 24.04.5, runner image `20260907.300.1` | 3.12.14 / 22.23.2 | 22 passed, 2 warnings, 0.84 s | 4 passed, 0 failed |
+| Fresh local environment, Windows 11 build 26200 | 3.12.14 / 26.4.0 | 22 passed, 2 warnings, 1.56 s | 4 passed, 0 failed |
+
+The CI commands are below. Locally, dependency installation used `python -m pip --isolated install -r requirements.txt` in a fresh virtual environment, followed by the same three check commands. CI used an empty `INVOICE_LABELS` and a database path under the runner's temporary directory; the local run used an allowlisted environment and temporary database. Neither received external-service credentials or a custom corpus.
+
+```bash
+python -m pip install -r requirements.txt
+python -m pytest -q
+node --test tests/drafts.test.mjs
+python scripts/evaluate.py
+```
+
+Both extraction reruns reported **238/238 printed fields**, **7/7 nulls** and **35/35 text documents** matching; the separate scan was blocked. Checks passed for **22/22 source-valid invoices** and blocked **13/13 source-defective invoices**. These reproduce the known regression set, not a new unseen-layout result. The evaluator prints metrics; it does not itself fail the process merely because a metric drops.
+
+The [first CI run](https://github.com/myp81607-dot/pdf-invoice-reviewer/actions/runs/35446383688), on `27e04ff`, failed before jobs because job-level `env` used an unavailable `runner` context; setting the temporary database through `GITHUB_ENV` in a run step fixed that workflow error.
 
 ## Three stages, with the failures retained
 
@@ -33,7 +55,7 @@ Seven required fields: supplier, invoice number, invoice date, currency, subtota
 
 Current check outcomes before human confirmation: **22/22 source-valid text invoices passed; 13/13 source-defective text invoices blocked; 0 defective text invoices passed.** Every upload is initially pending. Human review requirement: **36/36 (100%)**, even when extraction and automatic checks pass. Regression labels are not a substitute for manual approval.
 
-Recorded parsing time for the final run: development **0.125 s**, first-layout regression **0.097 s**, fresh-layout regression **0.052 s**. These are one local sequential run, without UI rendering/upload latency, not performance guarantees. Timings will vary on rerun.
+Recorded parsing time for the original post-fix local run: development **0.125 s**, first-layout regression **0.097 s**, fresh-layout regression **0.052 s**. These exclude UI rendering/upload latency and are not performance guarantees. Timings vary on rerun.
 
 ## Original-release behavior checks and independent review
 
@@ -54,17 +76,28 @@ An independent reviewer executed isolated API checks and found two concrete issu
 
 The reported lost-edit path was reproduced in the running browser: editing a field and its review note on invoice A, switching to B and returning to A restored saved values and erased both inputs. The UI now keeps a separate draft for each invoice in the current tab, with a visible draft state and an explicit discard action. CSV download is disabled while that tab has any drafts; the backend still exports only persisted, confirmed and currently valid records.
 
-Verification completed for this revision:
+Verification completed in that revision:
 
 - `python -m pytest -q`: **22 passed**, comprising the original 12 workflow checks and 10 version-conflict/configuration checks.
 - `node --test tests/drafts.test.mjs`: **4 passed**. These cover field/note retention through a storage round trip, retaining the original expected version, clearing drafts only after both fields and notes are reverted, and not restoring a draft to a different record that reused an ID. Node is an optional test dependency, not an application runtime dependency.
-- Actual browser operation preserved both a changed field and a review note through invoice navigation, filter changes and another PDF upload.
+- Actual operation in the in-app browser preserved both a changed field and a review note through invoice navigation, filter changes and another PDF upload.
 - An actual two-tab check saved a note-only change in tab B, advancing revision 1 to 2. Tab A's stale save received HTTP 409, displayed the newer saved values, retained its own field and note, and disabled review actions until the draft was discarded. A note-only save therefore also participates in conflict detection.
 - The configurable label path was exercised with `INVOICE_LABELS` and `python scripts/make_custom_sample.py`, which produces `data/custom-supplier.pdf`. Literal aliases are merged with built-in labels at startup and affect new uploads; previously extracted records are unchanged.
 
-Drafts are written to `sessionStorage` for recovery in the same tab, and `beforeunload` is registered while drafts exist. The storage round-trip check passed. The actual browser reload/leave-prompt attempt timed out in the browser controller without exposing a dialog, so neither a completed browser reload nor the native prompt is counted as verified. Browser prompt policy and available storage affect these paths; save or discard before closing a tab. Drafts are local browser state, not server backups or multi-user review sessions.
+Drafts are written to `sessionStorage`, and `beforeunload` is registered while drafts exist. The first browser reload/leave-prompt attempt timed out without exposing a dialog. The follow-up below subsequently verified reload recovery; native warning and discard-dialog interaction remain unverified. Drafts are local browser state, not server backups or multi-user review sessions.
 
 This revision adds label aliases, not new geometry rules, OCR or external integrations. No new unseen layout evaluation was run; the first-pass failures and post-fix regression figures above remain unchanged.
+
+## Browser follow-up
+
+Chrome **153.0.8010.52** was checked against the unchanged `fa997e9` application on an isolated local port and fresh database. The normal and amount-mismatch PDFs were seeded through the API: this Chrome controller could not upload files under its existing permissions, which were not expanded. Upload-retention evidence therefore remains the earlier in-app-browser run above; this is not one combined sequence in a single browser.
+
+- In the original Chrome tab, the edited date `01 Sep 2026` and note survived a record switch, draft filtering and an actual reload. The filter reset to all records and a new server GET was observed, while both draft inputs returned.
+- Tab A saved revision 1 as 2; tab B's stale save returned HTTP 409 and retained its field and note. After another tab loaded revision 2 and A confirmed revision 3, that stale revision-2 save was also blocked with its draft retained.
+- Native **Discard draft** confirmation handling hung the controller, so the dialog interaction is unverified. In a usable stale-draft tab, reverting the date to the saved `2026-09-01` and clearing the note with the keyboard removed the draft and enabled export.
+- **Export saved CSV** produced a new physical download. Although the controller's download wait timed out, reading that newly downloaded CSV verified one row: `DEMO-1001`, USD `218.63`, ISO date `2026-09-01`. The download is verified.
+
+The native `beforeunload` warning was not observed, even though reload completed. No browser-close recovery or native discard-confirmation result is claimed. Save before closing a tab; browser storage and prompt policy still apply. The existing video and screenshots were not re-created for this follow-up.
 
 ## Reproduce the demo
 

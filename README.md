@@ -8,6 +8,14 @@ For an operations assistant preparing a spreadsheet from supplier invoices: uplo
 
 This is a local, single-reviewer portfolio project using synthetic invoices. It suits a known set of English supplier layouts; it does not read scans or connect to accounting, payment or AI services. Supplier labels can be configured without changing Python code. New layouts still need sample-based checks.
 
+Tested code: [`087ba6b`](https://github.com/myp81607-dot/pdf-invoice-reviewer/commit/087ba6b0b3c41f18581bccecde0ddd7c58b6bf2e), [successful CI run](https://github.com/myp81607-dot/pdf-invoice-reviewer/actions/runs/35446565476) on Ubuntu 24.04.5, Python 3.12.14 and Node 22.23.2. This documentation update leaves that tested code unchanged.
+
+| Check | Result |
+|---|---|
+| `python -m pytest -q` | 22 passed, 2 warnings |
+| `node --test tests/drafts.test.mjs` | 4 passed |
+| `python scripts/evaluate.py` | 238/238 printed fields, 7/7 missing values; 1/1 scan blocked |
+
 [![Source PDF alongside editable fields](docs/screenshots/01-review-source.jpg)](docs/demo.mp4)
 
 ## Try the workflow
@@ -73,9 +81,9 @@ The app stores PDFs, fields and review history in `data/invoices.sqlite3`, which
 
 ## Edits and export
 
-Each invoice has a draft in the current browser tab. Fields and the review note survive switching records, filters and uploads. Browser session storage supports recovery after reloading that tab, and a leave warning is requested while drafts exist. The storage checks passed; a full browser reload and native warning could not be verified in this run ([details](docs/evaluation.md#review-workflow-revision-2026-09-19)). Save or discard before closing: tab closure is not a reliable way to retain drafts. A draft is not a saved invoice and is never part of an export.
+Each invoice has a draft in the current browser tab. The latest Chrome check retained the field and note through record switches, filtering and an actual reload; upload retention was verified earlier in the in-app browser. These are separate browser runs ([details](docs/evaluation.md#browser-follow-up)). A native leave warning is requested while drafts exist, but its appearance and the native discard-confirmation interaction remain unverified. Save before closing: tab closure is not a reliable way to retain drafts. A draft is not a saved invoice and is never part of an export.
 
-Save, confirm and reject require a note. Saving returns an invoice to pending; confirming checks the submitted values; rejecting excludes it from export. History retains changed values, notes and UTC timestamps, with the original extraction evidence still visible. If another tab has changed the saved record, the app keeps your draft and reports a conflict. Review the newer saved values before discarding the old draft and re-entering any changes you still want.
+Save, confirm and reject require a note. Saving returns an invoice to pending; confirming checks the submitted values; rejecting excludes it from export. History retains changed values, notes and UTC timestamps, with the original extraction evidence still visible. If another tab has changed the saved record, the app keeps your draft and reports a conflict. Review the newer saved values before discarding the old draft and re-entering any changes you still want. Alternatively, revert every field to its current saved value and clear the note; that tested path clears the draft and re-enables export when eligible records exist.
 
 The backend rechecks required fields, date, currency, exact `Decimal` arithmetic and duplicates on confirmation and export. Both identical files and matching supplier/invoice-number pairs are blocked. A later duplicate can therefore block a previously confirmed invoice. Supplier matching normalizes case and whitespace, not company aliases. CSV strings that resemble spreadsheet formulas get an apostrophe prefix. Download is a repeatable snapshot, not an accounting posting operation.
 
@@ -101,9 +109,9 @@ The server has no authentication or production upload isolation. Keep the loopba
 
 ## Verification and implementation
 
-Run `python -m pytest -q`: **22 tests pass**, including the original 12 workflow checks and 10 version-conflict/configuration checks. For the optional frontend state checks, run `node --test tests/drafts.test.mjs`: **4 tests pass**. Node is only needed for these checks, not to run the app.
+The 22 Python checks cover the original workflow plus version conflicts and label configuration; the four Node checks cover draft state. Node is needed only for these checks, not to run the app. The same application and test files also passed in a fresh Windows 11 environment with Python 3.12.14 and Node 26.4.0. [Run environments and the first CI configuration failure](docs/evaluation.md#latest-reproducible-run) are recorded separately.
 
-Run `python scripts/evaluate.py` for extraction regression. The earlier synthetic layout evaluation included a first independent failure of **0/66** printed fields and a fresh first-pass result of **35/41**. After the observed fixes, regression reached **238/238** printed fields across 35 text PDFs, with seven missing values kept null; the image-only scan was separately rejected. Those layout results are unchanged in this revision. They measure regression performance, not real-world accuracy. [Full denominators, failures and run evidence](docs/evaluation.md) are retained.
+The earlier synthetic layout evaluation included a first independent failure of **0/66** printed fields and a fresh first-pass result of **35/41**. The latest local and CI reruns reproduced the post-fix result across 35 text PDFs: all 238 printed fields and seven missing values matched; 22 valid invoices passed and 13 defective invoices were blocked. The image-only scan was separately rejected. These are regression results on known synthetic layouts, not unseen or real-world accuracy. [Full denominators and failures](docs/evaluation.md) are retained.
 
 The backend uses FastAPI, SQLite and pdfplumber; the UI is plain HTML/CSS/JavaScript. ReportLab generates synthetic fixtures. Start with [`app/extraction.py`](app/extraction.py), [`app/main.py`](app/main.py) and [`tests/test_workflow.py`](tests/test_workflow.py). No external model or accounting integration has been tested because none is part of this app.
 
