@@ -22,7 +22,7 @@
       "source_invalid_passed": 0,
       "source_invalid_blocked": 6,
       "scans_blocked": 1,
-      "elapsed_seconds": 0.125
+      "elapsed_seconds": 0.24
     },
     "documents": [
       {
@@ -394,7 +394,7 @@
       "source_invalid_passed": 0,
       "source_invalid_blocked": 5,
       "scans_blocked": 0,
-      "elapsed_seconds": 0.097
+      "elapsed_seconds": 0.164
     },
     "documents": [
       {
@@ -597,7 +597,7 @@
       "source_invalid_passed": 0,
       "source_invalid_blocked": 2,
       "scans_blocked": 0,
-      "elapsed_seconds": 0.052
+      "elapsed_seconds": 0.094
     },
     "documents": [
       {
