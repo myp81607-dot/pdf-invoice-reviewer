@@ -1,6 +1,6 @@
 # Evaluation notes
 
-Run date: 2026-09-19. Windows, Python 3.12.14. Dependencies are pinned in `requirements.txt`.
+Run date: 2026-09-19. Windows, Python 3.12.14. Dependencies are pinned in `requirements.txt`. The extraction results below are retained from the original release; the review-workflow revision has its own section.
 
 This is a small synthetic-document demonstration, not a benchmark for real supplier invoices. No real customer dataset, production deployment, savings or financial outcome was measured.
 
@@ -35,7 +35,7 @@ Current check outcomes before human confirmation: **22/22 source-valid text invo
 
 Recorded parsing time for the final run: development **0.125 s**, first-layout regression **0.097 s**, fresh-layout regression **0.052 s**. These are one local sequential run, without UI rendering/upload latency, not performance guarantees. Timings will vary on rerun.
 
-## Behavior checks and independent review
+## Original-release behavior checks and independent review
 
 `python -m pytest -q` → **12 passed, 2 warnings in 0.88 s** on this run. The warnings concern upstream Starlette/httpx/AnyIO deprecated test APIs.
 
@@ -50,11 +50,29 @@ Recorded parsing time for the final run: development **0.125 s**, first-layout r
 
 An independent reviewer executed isolated API checks and found two concrete issues: a stale green UI banner after rejected edits, and empty values consuming adjacent inline labels after the layout change. Both were fixed. The UI fix was verified in the running browser by changing `218.63` to `999.00`: confirmation was blocked with `+780.37` displayed. The adjacent-label bug has a targeted regression test. Review was scoped to required correctness; no production-readiness claim is made.
 
+## Review-workflow revision, 2026-09-19
+
+The reported lost-edit path was reproduced in the running browser: editing a field and its review note on invoice A, switching to B and returning to A restored saved values and erased both inputs. The UI now keeps a separate draft for each invoice in the current tab, with a visible draft state and an explicit discard action. CSV download is disabled while that tab has any drafts; the backend still exports only persisted, confirmed and currently valid records.
+
+Verification completed for this revision:
+
+- `python -m pytest -q`: **22 passed**, comprising the original 12 workflow checks and 10 version-conflict/configuration checks.
+- `node --test tests/drafts.test.mjs`: **4 passed**. These cover field/note retention through a storage round trip, retaining the original expected version, clearing drafts only after both fields and notes are reverted, and not restoring a draft to a different record that reused an ID. Node is an optional test dependency, not an application runtime dependency.
+- Actual browser operation preserved both a changed field and a review note through invoice navigation, filter changes and another PDF upload.
+- An actual two-tab check saved a note-only change in tab B, advancing revision 1 to 2. Tab A's stale save received HTTP 409, displayed the newer saved values, retained its own field and note, and disabled review actions until the draft was discarded. A note-only save therefore also participates in conflict detection.
+- The configurable label path was exercised with `INVOICE_LABELS` and `python scripts/make_custom_sample.py`, which produces `data/custom-supplier.pdf`. Literal aliases are merged with built-in labels at startup and affect new uploads; previously extracted records are unchanged.
+
+Drafts are written to `sessionStorage` for recovery in the same tab, and `beforeunload` is registered while drafts exist. The storage round-trip check passed. The actual browser reload/leave-prompt attempt timed out in the browser controller without exposing a dialog, so neither a completed browser reload nor the native prompt is counted as verified. Browser prompt policy and available storage affect these paths; save or discard before closing a tab. Drafts are local browser state, not server backups or multi-user review sessions.
+
+This revision adds label aliases, not new geometry rules, OCR or external integrations. No new unseen layout evaluation was run; the first-pass failures and post-fix regression figures above remain unchanged.
+
 ## Reproduce the demo
 
 Use the README commands, then `python -m pytest -q` and `python scripts/evaluate.py`. The evaluator overwrites only `docs/evaluation.json`; historical first-pass reports remain unchanged. Fixture generators are optional and do not import application parsing code. The file `scripts/generate_heldout.py` retains its historical name but now writes the former independent set to `fixtures/regression`.
 
-Screenshots under [`screenshots`](screenshots) are from the actual browser and backend using synthetic PDFs. [`example-reviewed.csv`](example-reviewed.csv) is a real export after UI confirmation. No continuous screen recording was produced.
+The [60-second walkthrough](demo.mp4) contains 12 screenshots captured during actual browser operations against a fresh local database using synthetic PDFs. Each is held for five seconds with a caption. It is a condensed step demonstration, not a continuous screen recording or a measure of original operation speed. The three images under [`screenshots`](screenshots) were also refreshed from the running UI.
+
+The walkthrough uses `fixtures/development/01-normal.pdf` and `07-amount-mismatch.pdf`: inspect the normal invoice's source date; change `2026-09-01` to `01 Sep 2026` and add a note; upload the mismatched invoice; return through the draft filter and find both inputs retained; confirm the normal invoice, normalizing the date to ISO; download its CSV; inspect the mismatched total; attempt confirmation and see the `+5.00` block with the note retained; reject that invoice. [`example-reviewed.csv`](example-reviewed.csv) is the actual download and contains exactly one saved, confirmed invoice, `DEMO-1001`, for USD `218.63`.
 
 ## Remaining boundaries
 

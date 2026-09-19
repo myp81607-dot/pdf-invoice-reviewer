@@ -24,7 +24,8 @@ def upload(client, fields, **kwargs):
 
 
 def review(client, id, action='confirm', **fields):
-    return client.post(f'/api/invoices/{id}/review',json={'fields':fields,'action':action,'note':'Verified against source PDF.'})
+    current = next(r for r in client.get('/api/invoices').json() if r['id'] == id)
+    return client.post(f'/api/invoices/{id}/review',json={'fields':fields,'action':action,'note':'Verified against source PDF.', 'expected_version':current['revision']})
 
 
 def test_input_changes_output_and_decimal(fields):
@@ -110,7 +111,7 @@ def test_persistence_and_required_note(tmp_path,fields):
     path=tmp_path/'persist.sqlite3'
     with TestClient(create_app(path)) as c:
         r=upload(c,fields)
-        assert c.post(f'/api/invoices/{r["id"]}/review',json={'action':'confirm','note':' '}).status_code==422
+        assert c.post(f'/api/invoices/{r["id"]}/review',json={'action':'confirm','note':' ', 'expected_version':r['revision']}).status_code==422
         review(c,r['id'])
     with TestClient(create_app(path)) as c:
         assert c.get('/api/invoices').json()[0]['exportable']

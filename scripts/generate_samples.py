@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'fixtures' / 'development'
 
 
-def make_pdf(fields, layout='classic', cross_page=False, scan=False, extra_line=None):
+def make_pdf(fields, layout='classic', cross_page=False, scan=False, extra_line=None, label_overrides=None):
     stream = io.BytesIO()
     c = canvas.Canvas(stream, pagesize=(595, 842))
     c.setTitle('Synthetic supplier invoice - personal demonstration')
@@ -44,6 +44,7 @@ def make_pdf(fields, layout='classic', cross_page=False, scan=False, extra_line=
     aliases = dict(zip(fields, ['Supplier','Invoice number','Invoice date','Currency','Subtotal','Tax','Total']))
     if layout == 'ledger':
         aliases.update(supplier='Vendor', invoice_number='Invoice no.', invoice_date='Date issued', subtotal='Net amount', tax='VAT amount', total='Amount due')
+    aliases.update(label_overrides or {})
     y = 677
     for i, (f, v) in enumerate(fields.items()):
         if cross_page and i == 4:

@@ -1,80 +1,89 @@
 # PDF Invoice Reviewer
 
-[简体中文](README.zh-CN.md) · [Evaluation & failure cases](docs/evaluation.md) · [Sample PDFs](fixtures)
+[简体中文](README.zh-CN.md) · [60-second walkthrough](docs/demo.mp4) · [Evaluation notes](docs/evaluation.md)
 
-Repository: [myp81607-dot/pdf-invoice-reviewer](https://github.com/myp81607-dot/pdf-invoice-reviewer). The local app is called Invoice Review Desk.
+For an operations assistant preparing a spreadsheet from supplier invoices: upload a text PDF, check the extracted values against the source page, and export the records you have approved. Missing fields, inconsistent totals and duplicate invoices stop a record from entering the CSV.
 
-**For a small operations team that needs supplier PDFs in a spreadsheet without silently copying bad numbers.** Upload a text-based invoice, compare the extracted fields with the original page, resolve missing values or mismatches, and confirm it. Download a CSV containing only invoices that are both confirmed and currently valid.
+`PDF → source check → edit or reject → confirm → CSV`
 
-Personal portfolio demonstration using synthetic invoices. No client data, payment processing, external AI calls, or accounting integrations.
+This is a local, single-reviewer portfolio project using synthetic invoices. It suits a known set of English supplier layouts; it does not read scans or connect to accounting, payment or AI services. Supplier labels can be configured without changing Python code. New layouts still need sample-based checks.
 
-![Actual local app: source PDF next to extracted values](docs/screenshots/01-review-source.jpg)
+[![Source PDF alongside editable fields](docs/screenshots/01-review-source.jpg)](docs/demo.mp4)
 
-## Try it in five minutes
+## Try the workflow
 
-Requires Git and Python 3.11+; verified on Python 3.12.14 / Windows:
+The [video](docs/demo.mp4) uses 12 captures from actual browser operations, with captions and each step held for five seconds. It is a condensed walkthrough, not continuous footage or the original operation speed. Repeat it locally with the included PDFs:
+
+1. Upload `fixtures/development/01-normal.pdf` and open the date's source evidence. Change `2026-09-01` to `01 Sep 2026`—the same date—and enter a review note without saving.
+2. Upload `fixtures/development/07-amount-mismatch.pdf`, then use the draft filter to return to the first invoice. The date and note remain. **Save changes** saves a pending record for later review; **Discard draft** restores saved values. CSV download stays disabled while this tab has any unfinished drafts.
+3. Check the normal invoice against the PDF and use **Confirm**; its date is saved as `2026-09-01`. With drafts resolved, use **Export saved CSV**. The [example export](docs/example-reviewed.csv) contains one approved invoice, `DEMO-1001`, totaling USD `218.63`. Only saved, confirmed records that pass the current checks are included. [Confirmation screen](docs/screenshots/02-confirmed.jpg).
+4. Return to the mismatched invoice. Its printed subtotal and tax add to `702.07`, but its total is `707.07`. Confirmation is blocked with a `+5.00` difference, keeping the review note. Compare the source, then reject it with a note or obtain a verified correction. Do not alter numbers merely to pass the check. [See the blocked state](docs/screenshots/03-amount-blocked.jpg).
+
+Also try `08-missing-tax.pdf` in the same folder: the app leaves tax empty rather than calculating a missing source value. In `09-cross-page.pdf`, the total's **p.2** link opens the second page. Upload the same file twice to see duplicate blocking; reject the extra copy to clear it.
+
+## Run locally
+
+Requires Git and Python 3.11+; the recorded environment is Windows with Python 3.12.14. No API keys are needed.
 
 ```bash
 git clone https://github.com/myp81607-dot/pdf-invoice-reviewer.git
 cd pdf-invoice-reviewer
 python -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# macOS / Linux instead: source .venv/bin/activate
+```
+
+Activate the environment with `.venv\Scripts\Activate.ps1` in Windows PowerShell, or `source .venv/bin/activate` on macOS/Linux, then run:
+
+```bash
 python -m pip install -r requirements.txt
 python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8766
 ```
 
-Open [http://127.0.0.1:8766](http://127.0.0.1:8766). No API keys are needed. Example PDFs are already included; do not regenerate them to get started.
+Open [localhost:8766](http://127.0.0.1:8766). The sample PDFs are already in the repository. If the port is in use, choose another port in the command and browser address.
 
-1. Upload `fixtures/development/01-normal.pdf`. Check the seven fields against the page. Enter a review note, then **Confirm invoice** and **Export confirmed CSV**.
-2. Upload `07-amount-mismatch.pdf`. Its `638.25 + 63.82 = 702.07`, while the PDF says `707.07`. Confirmation is blocked with a `+5.00` difference. Reject the document or obtain a verified correction; do not change values just to make arithmetic pass.
-3. Upload `08-missing-tax.pdf`. Tax stays empty. Confirmation is blocked rather than guessing it from the other numbers.
-4. Upload `09-cross-page.pdf`; click the total's **p.2** evidence link. Re-upload the same file to see duplicate blocking. Reject the extra copy to clear the conflict.
+## Use your own invoices
 
-![Actual confirmation and eligible export state](docs/screenshots/02-confirmed.jpg)
-![Actual amount mismatch: blocked confirmation](docs/screenshots/03-amount-blocked.jpg)
+Start with a few documents you are allowed to process. You should be able to select their text in a PDF reader. Check one known-good invoice, one missing or incorrect field, and any multi-page layout before processing a batch. The seven output fields are supplier, invoice number, invoice date, currency, subtotal, tax and total; the CSV also includes a local record ID.
 
-## What the app checks
+For supplier-specific setup, prepare representative PDFs, the expected seven values for each, and the rules you use to accept or reject them. Include duplicate examples and unusual labels. Redacted or synthetic copies are enough if they preserve the layout. A new date convention, additional output field or unfamiliar page structure needs a code change and its own verification.
 
-```mermaid
-flowchart LR
-    A[Text PDF] --> B[Page text and word positions]
-    B --> C[Seven fields with source evidence]
-    C --> D[Required fields, dates, currency, Decimal totals, duplicates]
-    D --> E[Human review and correction history]
-    E --> F{Confirmed and valid now?}
-    F -->|Yes| G[CSV]
-    F -->|No| E
+For label aliases within an otherwise supported layout, copy [`config/labels.example.json`](config/labels.example.json), then edit the relevant field entries. Aliases are literal text, case insensitive, and add to the built-in labels:
+
+```json
+{
+  "supplier": ["Supplier name"],
+  "invoice_number": ["Document reference"]
+}
 ```
 
-- **Evidence:** supplier, invoice number, date, currency, subtotal, tax and total each link to their source page and text fragment. Original extraction evidence remains visible after edits.
-- **Deterministic arithmetic:** `Decimal(subtotal) + Decimal(tax) == Decimal(total)`. No floating-point tolerance or model-generated math. Conflicting printed values remain unresolved.
-- **Two duplicate checks:** identical PDF bytes, and normalized supplier + invoice number. Invoice numbers from different suppliers may coexist. A new duplicate blocks even an already-confirmed record at export time.
-- **Human control:** save, confirm or reject with a required note. Changes record before/after values and UTC time. Saving returns the record to pending. Rejection excludes it from export.
-- **Real persistence:** SQLite stores the PDFs, extracted pages, current fields and review history. Restarting the app retains the review queue. `data/` is ignored by Git. Set `INVOICE_DB` to choose a different database; stop the app and use a new database path for a clean workspace.
-- **CSV protection:** only valid confirmed rows are exported; strings that look like spreadsheet formulas are prefixed with an apostrophe. Export is a repeatable download, not a ledger posting operation.
+Before starting the app, set the file path in PowerShell:
 
-## Verified results, including failures
+```powershell
+$env:INVOICE_LABELS = "config/labels.example.json"
+```
 
-Run `python -m pytest -q` and `python scripts/evaluate.py`.
+Or on macOS/Linux:
 
-**12 behavior tests passed**, including changed-input output, confirmation gating, duplicate lifecycle, cross-page evidence, correction history, restart persistence, scan rejection and a missing-field/neighbor-label regression. Two upstream test-client deprecation warnings were emitted.
+```bash
+export INVOICE_LABELS=config/labels.example.json
+```
 
-| Evaluation stage | Present fields correct | Missing values kept null | Whole documents with all seven slots correct |
-|---|---:|---:|---:|
-| Development, initial supported layouts (19 text PDFs) | 131/131 | 2/2 | 19/19 |
-| First independent layout, before geometry repair (10 PDFs) | 0/66 | 4/4 | 0/10 |
-| Fresh independent layout, first pass (6 PDFs) | 35/41 (85.4%) | 1/1 | 0/6 |
-| Current regression run after observed fixes (35 text PDFs) | 238/238 | 7/7 | 35/35 |
+Run `python scripts/make_custom_sample.py` to create `data/custom-supplier.pdf`, a synthetic invoice using these two aliases. Start the app with the configuration above and upload it; check that both fields match the source. Restart after changing the configuration. It applies to new uploads; existing records keep their original extraction. This adds names for fields, not OCR or support for arbitrary layouts.
 
-The initial failures matter: line-only parsing lost two-column blocks; a later supplier section title produced an ambiguous supplier. Both have targeted fixes. **The post-fix row is regression performance, not unseen accuracy.** All 36 PDFs require human review; one image-only scan is tested separately and blocked. The final rules pass checks on 22 valid text documents and block 13 defective ones. These are small synthetic sets, not a real-world accuracy estimate. See [raw results and exact denominators](docs/evaluation.md).
+The app stores PDFs, fields and review history in `data/invoices.sqlite3`, which Git ignores. To start a separate workspace, stop the server, set `INVOICE_DB` to another database path using the same environment-variable syntax, and restart. Keep the database private and use authorized data only.
 
-## Supported input contract and limits
+## Edits and export
 
-English text PDFs with explicit labels: inline label/value, separated label/value rows, or aligned label-above-value blocks, including fields across pages. The app uses word coordinates; it does not understand arbitrary document semantics. Inline supplier fields require a colon. Standalone supplier labels above values may omit it.
+Each invoice has a draft in the current browser tab. Fields and the review note survive switching records, filters and uploads. Browser session storage supports recovery after reloading that tab, and a leave warning is requested while drafts exist. The storage checks passed; a full browser reload and native warning could not be verified in this run ([details](docs/evaluation.md#review-workflow-revision-2026-09-19)). Save or discard before closing: tab closure is not a reliable way to retain drafts. A draft is not a saved invoice and is never part of an export.
 
-| Field | Accepted labels |
+Save, confirm and reject require a note. Saving returns an invoice to pending; confirming checks the submitted values; rejecting excludes it from export. History retains changed values, notes and UTC timestamps, with the original extraction evidence still visible. If another tab has changed the saved record, the app keeps your draft and reports a conflict. Review the newer saved values before discarding the old draft and re-entering any changes you still want.
+
+The backend rechecks required fields, date, currency, exact `Decimal` arithmetic and duplicates on confirmation and export. Both identical files and matching supplier/invoice-number pairs are blocked. A later duplicate can therefore block a previously confirmed invoice. Supplier matching normalizes case and whitespace, not company aliases. CSV strings that resemble spreadsheet formulas get an apostrophe prefix. Download is a repeatable snapshot, not an accounting posting operation.
+
+## Supported input and limits
+
+English text PDFs with explicit labels can use inline values, separate label/value cells or aligned label-above-value blocks, including fields across pages. Inline supplier fields need a colon. The extractor uses nearby text coordinates, so wrapped, widely spaced or dense layouts can fail; see the [geometry limits](docs/evaluation.md#remaining-boundaries).
+
+| Field | Built-in labels |
 |---|---|
 | Supplier | Supplier, Vendor, Seller |
 | Invoice number | Invoice number, Invoice reference/ref, Invoice no., Invoice ID, Invoice # |
@@ -84,21 +93,18 @@ English text PDFs with explicit labels: inline label/value, separated label/valu
 | Tax | Tax, VAT amount |
 | Total | Total, Total payable, Grand total, Amount due |
 
-Labels are case insensitive. Dates: `YYYY-MM-DD` or explicit English `DD Month YYYY` / `DD Mon YYYY`; ambiguous numeric dates are blocked. Currency: USD, EUR, GBP or CNY, with no conversion. Amounts: nonnegative dot decimals, at most two fractional digits, optional grouped commas. Only the printed subtotal/tax/total relationship is checked; no line-item reconciliation, tax-rate validation or credit-note handling.
+Labels ignore case. Dates must be `YYYY-MM-DD` or explicit English `DD Month YYYY` / `DD Mon YYYY`. Supported currencies are USD, EUR, GBP and CNY, without conversion. Amounts must be nonnegative dot decimals with at most two fractional digits; grouped commas are accepted. The check is only subtotal + tax = total, not line-item reconciliation or a tax-policy decision.
 
-Up to 10 MB and 12 pages per file. Scans, mixed image/text pages without extractable text, encryption, handwriting, arbitrary supplier logos, unlabeled fields and multilingual/complex layouts are unsupported. A PDF with a poor text layer can still extract incorrectly: check the source. Missing text fields may be manually entered with a note; unsupported documents stay blocked. Supplier-name normalization only handles case and whitespace; aliases require human review.
+Files are limited to 10 MB and 12 pages. Scans, image-only pages in mixed PDFs, encryption, handwriting, unlabeled fields, supplier logos alone, credit notes and multilingual layouts are unsupported. Missing text fields can be entered with a verified source and note; an unsupported document remains blocked. A bad text layer can produce a plausible wrong value, so passing checks never replaces source review.
 
-Local single-reviewer app, without authentication or production upload isolation. Bind to loopback as shown; public deployment, multi-user approvals, ERP connections and retention policies are outside this demo. Audit notes are local records, not signed compliance evidence. No continuous demo video was recorded; screenshots come from the real running app.
+The server has no authentication or production upload isolation. Keep the loopback binding shown above. Shared deployment, multi-user approvals, ERP integration and retention policies need separate work. Local review history is not signed compliance evidence.
 
-## Implementation and references
+## Verification and implementation
 
-FastAPI + SQLite backend; plain HTML/CSS/JavaScript UI; pdfplumber extraction and page rendering; ReportLab synthetic fixtures. Main files: [`app/extraction.py`](app/extraction.py), [`app/main.py`](app/main.py), [`tests/test_workflow.py`](tests/test_workflow.py).
+Run `python -m pytest -q`: **22 tests pass**, including the original 12 workflow checks and 10 version-conflict/configuration checks. For the optional frontend state checks, run `node --test tests/drafts.test.mjs`: **4 tests pass**. Node is only needed for these checks, not to run the app.
 
-This project implements its own field/evidence model, geometry rules, validation gates, review lifecycle, duplicate checks, UI and evaluation. AI assisted implementation and review; separate agents authored the independent layouts without reading the parser. It is not a fork of a larger invoice product.
+Run `python scripts/evaluate.py` for extraction regression. The earlier synthetic layout evaluation included a first independent failure of **0/66** printed fields and a fresh first-pass result of **35/41**. After the observed fixes, regression reached **238/238** printed fields across 35 text PDFs, with seven missing values kept null; the image-only scan was separately rejected. Those layout results are unchanged in this revision. They measure regression performance, not real-world accuracy. [Full denominators, failures and run evidence](docs/evaluation.md) are retained.
 
-- [invoice2data documentation and source](https://github.com/invoice-x/invoice2data), especially [`InvoiceTemplate`](https://github.com/invoice-x/invoice2data/blob/master/src/invoice2data/extract/invoice_template.py): informed the explicit label/template approach. No invoice2data runtime or supplier-template corpus is bundled.
-- [pdfplumber documentation](https://github.com/jsvine/pdfplumber) and [`Page` source](https://github.com/jsvine/pdfplumber/blob/stable/pdfplumber/page.py): used `extract_text`, `extract_words`, page numbers and `to_image` for traceable extraction and review.
+The backend uses FastAPI, SQLite and pdfplumber; the UI is plain HTML/CSS/JavaScript. ReportLab generates synthetic fixtures. Start with [`app/extraction.py`](app/extraction.py), [`app/main.py`](app/main.py) and [`tests/test_workflow.py`](tests/test_workflow.py). No external model or accounting integration has been tested because none is part of this app.
 
-Both references use MIT licenses; their notices are retained in [`docs/licenses`](docs/licenses). References reviewed on 2026-09-19. This repository's original code and synthetic fixtures are [MIT licensed](LICENSE).
-
-**Portfolio summary:** A local invoice-to-CSV review tool with source evidence, deterministic checks, duplicate blocking and auditable human corrections. Suitable as a starting point for a bounded, supplier-specific document workflow.
+The field/evidence model, geometry rules, review lifecycle, validation, duplicate checks and UI are implemented here. AI assisted implementation and review; independent agents authored evaluation layouts without reading the parser. [invoice2data's documentation and template source](https://github.com/invoice-x/invoice2data) informed the explicit-label approach; its runtime and template corpus are not bundled. [pdfplumber's documentation and page source](https://github.com/jsvine/pdfplumber) informed the actual text, word-coordinate and page-rendering API use. Both references were reviewed on 2026-09-19; their MIT notices are retained in [`docs/licenses`](docs/licenses). The project code and synthetic fixtures use the [MIT license](LICENSE).

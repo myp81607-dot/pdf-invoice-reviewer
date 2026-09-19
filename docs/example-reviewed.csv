@@ -1,2 +1,2 @@
 ﻿record_id,supplier,invoice_number,invoice_date,currency,subtotal,tax,total
-4,Fern & Field Office Supply,FF-260901,2026-09-01,USD,1200.00,96.00,1296.00
+1,Northstar Office Supply,DEMO-1001,2026-09-01,USD,198.75,19.88,218.63

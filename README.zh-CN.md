@@ -1,80 +1,89 @@
 # PDF Invoice Reviewer · 发票核对工具
 
-[English](README.md) · [评测与失败案例](docs/evaluation.md) · [合成 PDF](fixtures)
+[English](README.md) · [60 秒操作演示](docs/demo.mp4) · [评测记录](docs/evaluation.md)
 
-项目仓库：[myp81607-dot/pdf-invoice-reviewer](https://github.com/myp81607-dot/pdf-invoice-reviewer)。本地应用界面名称为 Invoice Review Desk。
+供应商发来 PDF，运营人员需要把它整理进表格：上传带文本的发票，对照原始页面检查提取值，确认后下载 CSV。缺字段、金额不符或重复单据会被拦截，不能混进导出结果。
 
-**为需要把供应商 PDF 整理成表格的小型运营团队而做。** 上传带文本的发票，将提取字段与原始页面并排核对，处理缺项或金额不符，再由人确认。下载的 CSV 只包含“已确认且当前校验仍通过”的记录。
+`PDF → 对照原文 → 修改或拒绝 → 确认 → CSV`
 
-这是使用合成发票的个人作品演示，没有客户数据，不付款，不调用外部 AI，不连接财务系统。
+这是使用合成发票的本地单人审核作品，适合供应商范围明确的英文文档。不读扫描件，不连接财务、支付或 AI 服务。供应商字段标签可以通过配置调整，无需修改 Python；新布局仍需用样例验证。
 
-![真实运行界面：原始 PDF 与提取字段并排](docs/screenshots/01-review-source.jpg)
+[![原始 PDF 与可编辑字段并排展示](docs/screenshots/01-review-source.jpg)](docs/demo.mp4)
 
-## 五分钟启动
+## 先看一遍实际流程
 
-需要 Git 和 Python 3.11+；实测环境为 Windows、Python 3.12.14：
+[视频](docs/demo.mp4)由实际浏览器操作中截取的 12 张画面组成，每步停留 5 秒并附字幕。这是关键步骤展示，不是连续录屏，也不代表原始操作速度。可以用仓库附带的 PDF 在本地复现：
+
+1. 上传 `fixtures/development/01-normal.pdf`，打开日期的来源证据。将 `2026-09-01` 改为同一天的另一种写法 `01 Sep 2026`，填写审核说明，先不保存。
+2. 上传 `fixtures/development/07-amount-mismatch.pdf`，再用草稿筛选返回第一张发票，日期和说明仍保留。需要稍后再审，可点击 **Save changes** 保存为待确认记录；**Discard draft** 恢复已保存的值。本页签只要还有草稿，CSV 下载按钮就不可用。
+3. 按原文核对正常发票后点击 **Confirm**，日期会保存为 `2026-09-01`。处理完草稿后点击 **Export saved CSV**。[真实导出示例](docs/example-reviewed.csv)只有一张已确认发票 `DEMO-1001`，总额 USD `218.63`。只有已保存、已确认、当前仍通过校验的记录会进入文件。[查看确认后的界面](docs/screenshots/02-confirmed.jpg)。
+4. 返回金额异常的发票。原文税前金额加税额是 `702.07`，总额却写着 `707.07`。确认会被拦截，显示差额 `+5.00`，审核说明仍保留。对照原文后填写说明并拒绝，或取得经核实的更正；不能只为通过计算而改数字。[查看拦截界面](docs/screenshots/03-amount-blocked.jpg)。
+
+同目录的 `08-missing-tax.pdf` 缺少税额，应用保持空值，不会倒算补齐。`09-cross-page.pdf` 的总额来源链接 **p.2** 会打开第二页。重复上传同一文件可查看查重拦截，拒绝额外副本后解除冲突。
+
+## 本地启动
+
+需要 Git 和 Python 3.11+；已记录的运行环境为 Windows、Python 3.12.14。无需 API key。
 
 ```bash
 git clone https://github.com/myp81607-dot/pdf-invoice-reviewer.git
 cd pdf-invoice-reviewer
 python -m venv .venv
-# Windows PowerShell：
-.venv\Scripts\Activate.ps1
-# macOS / Linux 改为：source .venv/bin/activate
+```
+
+Windows PowerShell 用 `.venv\Scripts\Activate.ps1` 激活环境，macOS/Linux 用 `source .venv/bin/activate`，然后执行：
+
+```bash
 python -m pip install -r requirements.txt
 python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8766
 ```
 
-打开 [http://127.0.0.1:8766](http://127.0.0.1:8766)。无需 API key；仓库已经附带 PDF，无需先运行生成器。
+打开 [localhost:8766](http://127.0.0.1:8766)。示例 PDF 已在仓库中，不用先运行生成器。如果端口被占用，把命令和浏览器地址中的端口一起改掉。
 
-1. 上传 `fixtures/development/01-normal.pdf`。对照原文核对七个字段，填写审核说明，点击 **Confirm invoice**，再点击 **Export confirmed CSV**。
-2. 上传 `07-amount-mismatch.pdf`。税前金额与税额为 `638.25 + 63.82 = 702.07`，原文总额却是 `707.07`，系统显示差额 `+5.00` 并阻止确认。应拒绝或取得经核实的更正，不能仅为通过计算而修改数字。
-3. 上传 `08-missing-tax.pdf`。缺失税额保持为空，不会用另两个金额自动补算。
-4. 上传 `09-cross-page.pdf`，点击总额的 **p.2** 查看第二页证据；再次上传同一 PDF 会触发重复文件拦截，拒绝额外副本后可解除冲突。
+## 换成自己的发票
 
-![真实确认成功及可导出状态](docs/screenshots/02-confirmed.jpg)
-![真实金额异常及确认拦截](docs/screenshots/03-amount-blocked.jpg)
+先选几份有权处理的文档，确认在 PDF 阅读器里能选中文本。至少检查一份正常单据、一份缺项或错误单据，以及实际存在的跨页版式，再开始处理一批文件。输出字段固定为供应商、单据号、日期、币种、税前金额、税额和总额；CSV 另带本地记录 ID。
 
-## 它具体做什么
+定制某类供应商时，需要准备代表性 PDF、每份单据七个字段的预期值，以及业务上的接受/拒绝规则。附上重复单据和不常见标签样例。只要保留版式，脱敏件或合成件也可以。新的日期习惯、额外输出字段或不同页面结构，需要修改代码并单独验证。
 
-```mermaid
-flowchart LR
-    A[带文本 PDF] --> B[逐页文本与字词坐标]
-    B --> C[七个字段及来源证据]
-    C --> D[缺项、日期、币种、Decimal 金额、查重]
-    D --> E[人工核对与修改记录]
-    E --> F{已确认且当前合格?}
-    F -->|是| G[CSV]
-    F -->|否| E
+如果只是已支持版式中的标签名称不同，可以复制 [`config/labels.example.json`](config/labels.example.json)，修改相应字段。别名按普通文本匹配、不区分大小写，和内置标签一起生效：
+
+```json
+{
+  "supplier": ["Supplier name"],
+  "invoice_number": ["Document reference"]
+}
 ```
 
-- **看得到依据：** 供应商、单据号、日期、币种、税前金额、税额、总额均关联来源页码和文本片段。人工改值后仍保留原始提取依据。
-- **确定性核算：** 用 Decimal 严格验证“税前金额 + 税额 = 总额”，不交给模型算钱，不使用浮点近似。同一字段出现矛盾值时要求人工处理。
-- **两种查重：** 文件内容完全相同，以及“规范化供应商名 + 单据号”相同。不同供应商可使用相同单据号；新出现的重复记录也会使旧的已确认记录暂时不能导出。
-- **人工负责最终确认：** 保存、确认、拒绝都需要说明，记录改前/改后值和 UTC 时间。保存修改后回到待确认；拒绝记录不能导出。
-- **真实持久化：** SQLite 保存 PDF、文本、当前字段和审核历史，重启仍保留。`data/` 不进入 Git。可用 `INVOICE_DB` 指定数据库；需要全新工作区时先停止应用，再使用新的数据库路径。
-- **CSV 出口：** 只导出当前合格的已确认记录；疑似电子表格公式的字符串加单引号前缀。重复下载会得到当前快照，它不是财务过账接口。
+启动应用前，在 PowerShell 设置配置路径：
 
-## 实测结果，也公开失败
+```powershell
+$env:INVOICE_LABELS = "config/labels.example.json"
+```
 
-执行 `python -m pytest -q` 和 `python scripts/evaluate.py`。
+macOS/Linux 改为：
 
-**12 项行为测试通过**，覆盖输入变化影响输出、确认与导出限制、重复生命周期、跨页证据、修改历史、重启、扫描件拒绝、空字段误吞邻近标签的回归修复。测试依赖产生两条弃用警告，未影响通过。
+```bash
+export INVOICE_LABELS=config/labels.example.json
+```
 
-| 阶段 | 已有字段精确正确 | 真缺失保持 null | 七个槽位全部正确的整单 |
-|---|---:|---:|---:|
-| 开发集，初始支持布局（19 份文本 PDF） | 131/131 | 2/2 | 19/19 |
-| 首批独立布局，坐标修复前（10 份） | 0/66 | 4/4 | 0/10 |
-| 新独立布局，首次评测（6 份） | 35/41（85.4%） | 1/1 | 0/6 |
-| 修复观察到的问题后，当前回归（35 份文本 PDF） | 238/238 | 7/7 | 35/35 |
+运行 `python scripts/make_custom_sample.py` 会生成 `data/custom-supplier.pdf`，使用上面两个别名的合成发票。带上述配置启动应用，上传样例并对照原文检查这两个字段。修改配置后重启应用，对新上传的文档生效；已有记录保留原始提取结果。这个入口只增加字段叫法，不会增加 OCR 或任意版式识别能力。
 
-首次失败来自双栏上下标签布局被纯文本合并；第二次是供应商区域标题被当成另一个候选值。均已针对性修复。**修复后的数字只是回归结果，不能当作未见样本准确率。** 36 份 PDF 均须人工审核；其中 1 份图像扫描件单独统计并被拦截。最终规则使 22 份内容正常的文本单据通过校验，拦截 13 份有缺陷的文本单据。样本小且为合成资料，不代表真实业务整体准确率。完整分母、原始结果见 [评测说明](docs/evaluation.md)。
+PDF、字段和审核历史保存在 `data/invoices.sqlite3`，Git 会忽略它。需要独立工作区时，先停止服务，用同样的环境变量语法把 `INVOICE_DB` 设为另一个数据库路径，再重启。数据库应保密，只处理获得授权的数据。
 
-## 支持范围与边界
+## 修改与导出的关系
 
-英文、带文本、明确标签的供应商发票；支持标签和值同行、分隔的左右字段、标签在上值在下、字段跨页。提取基于字词坐标，不能理解任意文档语义。同行供应商字段要求冒号；独立放在值上方的供应商标签可以省略冒号。
+每条发票在当前浏览器页签中有独立草稿，字段和审核说明在切换记录、筛选及上传后保留。应用使用浏览器会话存储支持刷新恢复，有草稿时请求浏览器显示离开提醒。存储检查已通过，但本轮未能验证完整的浏览器刷新及原生提示交互（[详情](docs/evaluation.md#review-workflow-revision-2026-09-19)）。关闭页签后不能保证恢复，所以应先保存或丢弃。草稿不是已保存记录，也不会进入导出。
 
-| 字段 | 识别标签（不区分大小写） |
+保存、确认、拒绝都要填写说明。保存后回到待确认；确认会检查本次提交的值；拒绝后不能导出。历史保留改前/改后值、说明和 UTC 时间，原始提取依据仍可查看。如果另一个页签已修改已保存记录，应用保留当前草稿并提示冲突。先核对最新保存值，再丢弃旧草稿，重新填写仍需保留的修改。
+
+后端在确认和导出时检查必填字段、日期、币种、精确的 `Decimal` 金额计算和重复项。文件完全相同，或供应商与单据号相同，都会被拦截；因此新上传的重复件也可能让先前确认的单据暂时无法导出。供应商名只按大小写和空白归一化，不识别公司别名。疑似电子表格公式的 CSV 字符串会加单引号前缀。下载得到当前快照，不是财务过账操作。
+
+## 支持的输入与限制
+
+英文、带文本、有明确标签的 PDF，支持标签和值同行、分开的左右单元格、标签在上值在下，以及字段跨页。同行供应商标签需要冒号。提取依赖邻近字词坐标，换行、过大间距或密集布局可能失败；具体[坐标限制](docs/evaluation.md#remaining-boundaries)见评测文档。
+
+| 字段 | 内置标签 |
 |---|---|
 | 供应商 | Supplier、Vendor、Seller |
 | 单据号 | Invoice number、Invoice reference/ref、Invoice no.、Invoice ID、Invoice # |
@@ -84,21 +93,18 @@ flowchart LR
 | 税额 | Tax、VAT amount |
 | 总额 | Total、Total payable、Grand total、Amount due |
 
-日期接受 ISO `YYYY-MM-DD` 或明确英文月份的 `DD Month YYYY` / `DD Mon YYYY`；有歧义的数字日期不猜。币种仅 USD/EUR/GBP/CNY，不换汇。金额为非负、点作小数点、最多两位小数、可带规范千位逗号。只检查三个汇总金额，不校验行项目、税率，也不处理贷项通知单。
+标签不区分大小写。日期接受 `YYYY-MM-DD` 或明确英文月份的 `DD Month YYYY` / `DD Mon YYYY`。币种仅 USD、EUR、GBP、CNY，不换汇。金额须为非负、点作小数点、最多两位小数，可带规范千位逗号。只核对“税前金额 + 税额 = 总额”，不核对行项目或判定税务政策。
 
-单文件最多 10 MB、12 页；不支持扫描、含无文本页面的混合 PDF、加密、手写、仅有 Logo 的供应商名、无标签字段、多语言或任意复杂布局。文本层有问题时仍可能提取错误，必须看原文。文本发票缺字段可人工填写并记录依据；不支持的文档仍保持拦截。供应商名称仅按大小写和空白归一化，别名由人核对。
+单文件最多 10 MB、12 页。不支持扫描件、混合 PDF 中的纯图像页、加密、手写、无标签字段、仅 Logo 表示的供应商、贷项通知单和多语言布局。文本发票的缺项可凭经核实的来源和说明人工填写；不支持的文档仍被拦截。错误文本层可能给出看似合理的错值，校验通过不能代替人工看原文。
 
-这是本地单人审核应用，没有鉴权及生产上传隔离，按启动示例绑定回环地址。公网部署、多用户审批、ERP 接入及留存制度不在本作品范围内；本地修改记录不是签名合规证据。未录制连续演示视频，截图全部来自实际运行。
+服务没有鉴权或生产上传隔离，请保留上述回环地址绑定。共享部署、多用户审批、ERP 接入及留存规则需另行实现。本地审核历史不是签名合规证据。
 
-## 实现与参考
+## 验证记录与实现
 
-FastAPI + SQLite 后端，原生 HTML/CSS/JavaScript 界面，pdfplumber 提取和页面渲染，ReportLab 生成合成资料。核心代码：[`app/extraction.py`](app/extraction.py)、[`app/main.py`](app/main.py)、[`tests/test_workflow.py`](tests/test_workflow.py)。
+运行 `python -m pytest -q`：**22 项测试通过**，包括原有 12 项流程检查，以及 10 项版本冲突和配置检查。可选的前端状态检查命令为 `node --test tests/drafts.test.mjs`，**4 项通过**。Node 只用于这些检查，运行应用不需要它。
 
-本项目自行实现字段与证据结构、坐标匹配、校验门槛、审核状态、查重、UI 与评测。使用 AI 辅助编码和审查，独立代理在不读取解析器的情况下生成验证布局；没有复制大型项目后冒充自行开发。
+运行 `python scripts/evaluate.py` 检查提取回归。之前的合成布局评测保留了首次独立样本 **0/66**、另一批首次测试 **35/41** 的已有字段正确数。修复已观察的问题后，35 份文本 PDF 的回归为 **238/238** 已有字段正确、7 个缺项保持空值；另有一份纯图像扫描件被拒绝。本轮没有改变这些布局结果。这是回归表现，不是真实业务准确率。[完整分母、失败与运行证据](docs/evaluation.md)均保留。
 
-- [invoice2data 文档与源码](https://github.com/invoice-x/invoice2data)，尤其 [`InvoiceTemplate`](https://github.com/invoice-x/invoice2data/blob/master/src/invoice2data/extract/invoice_template.py)：借鉴明确标签/模板的思路；没有打包该项目的运行时或供应商模板库。
-- [pdfplumber 文档](https://github.com/jsvine/pdfplumber) 与 [`Page` 源码](https://github.com/jsvine/pdfplumber/blob/stable/pdfplumber/page.py)：实际使用逐页文本、字词坐标、页码和 `to_image`，将提取值关联到可核对的原始页面。
+后端为 FastAPI、SQLite、pdfplumber，界面使用原生 HTML/CSS/JavaScript，ReportLab 生成合成样例。主要入口是 [`app/extraction.py`](app/extraction.py)、[`app/main.py`](app/main.py) 和 [`tests/test_workflow.py`](tests/test_workflow.py)。应用不包含外部模型或财务集成，因此没有这些系统的实连验证。
 
-两者均为 MIT 许可，来源许可保存在 [`docs/licenses`](docs/licenses)。查阅日期为 2026-09-19。本仓库代码及合成资料采用 [MIT 许可](LICENSE)。
-
-**作品一句话：** 将供应商发票转为带来源依据的审核表，通过金额核算、重复拦截和人工修改记录，让合格的已确认条目才能导出 CSV；适合作为明确供应商范围的文档处理项目起点。
+字段与来源证据、坐标规则、审核流程、校验、查重和界面在本仓库实现。使用 AI 辅助编码和审查，独立代理在不读取解析器的情况下编写评测布局。[invoice2data 文档与模板源码](https://github.com/invoice-x/invoice2data)提供了明确标签的思路，未打包其运行时和模板库；[pdfplumber 文档与页面源码](https://github.com/jsvine/pdfplumber)用于实际调用文本、字词坐标和页面渲染接口。两份参考均于 2026-09-19 查阅，MIT 许可保存在 [`docs/licenses`](docs/licenses)。本项目代码及合成样例使用 [MIT 许可](LICENSE)。

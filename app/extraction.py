@@ -24,6 +24,18 @@ MONTHS = {name.lower(): i for i, name in enumerate(
 MONTHS.update({name[:3]: number for name,number in list(MONTHS.items())})
 
 
+def configured_labels(aliases):
+    """Extend known labels with literal supplier-specific aliases."""
+    if not isinstance(aliases, dict) or set(aliases) - set(FIELDS):
+        raise ValueError('INVOICE_LABELS must be a JSON object using only known invoice field names.')
+    labels = LABELS.copy()
+    for field, values in aliases.items():
+        if not isinstance(values, list) or not values or any(not isinstance(v, str) or not v.strip() for v in values):
+            raise ValueError(f'INVOICE_LABELS {field} must be a nonempty list of nonempty literal labels.')
+        labels[field] += '|' + '|'.join(re.escape(v.strip()) for v in values)
+    return labels
+
+
 def money(value):
     if not value or not MONEY.fullmatch(value):
         return None
@@ -48,13 +60,14 @@ def normalize(field, value):
     return value
 
 
-def page_evidence(page):
+def page_evidence(page, labels=None):
     """Read inline fields and label-above-value blocks without merging columns.
 
     Words at nearly the same height form a row. Wide gaps separate cells.
     A label can use the next cell or the closest aligned row below (<=36pt).
     The gap limits are intentionally modest: unsupported arrangements stay empty.
     """
+    labels = LABELS if labels is None else labels
     rows = []
     for word in sorted(page.extract_words(x_tolerance=2, y_tolerance=3), key=lambda w:(w['top'], w['x0'])):
         if not rows or abs(word['top']-rows[-1][0]['top']) > 3:
@@ -71,15 +84,15 @@ def page_evidence(page):
                 parts[-1].append(word)
         segments.append([{'text':' '.join(w['text'] for w in part), 'x0':part[0]['x0'],
                           'x1':part[-1]['x1'], 'top':part[0]['top']} for part in parts])
-    field_prefix = re.compile(r'^(?:'+'|'.join(LABELS.values())+r')(?:\s*:|\s+|$)', re.I)
+    field_prefix = re.compile(r'^(?:'+'|'.join(labels.values())+r')(?:\s*:|\s+|$)', re.I)
     for ri, row in enumerate(segments):
         for si, cell in enumerate(row):
-            for field, labels in LABELS.items():
-                if not re.fullmatch(r'(?:'+labels+r')\s*:?', cell['text'], re.I):
+            for field, pattern in labels.items():
+                if not re.fullmatch(r'(?:'+pattern+r')\s*:?', cell['text'], re.I):
                     # Supplier headings such as "SUPPLIER SERVICES / ACCOUNTS"
                     # are not values. Inline supplier fields need an explicit colon.
                     separator = r'\s*:\s*' if field == 'supplier' else r'(?:\s*:\s*|\s+)'
-                    inline = re.fullmatch(r'(?:'+labels+r')'+separator+r'(.+)', cell['text'], re.I)
+                    inline = re.fullmatch(r'(?:'+pattern+r')'+separator+r'(.+)', cell['text'], re.I)
                     if inline and not field_prefix.match(inline[1]):
                         yield field, inline[1], cell['text']
                     continue
@@ -99,7 +112,7 @@ def page_evidence(page):
                         break
 
 
-def extract_pdf(content):
+def extract_pdf(content, labels=None):
     result = {'fields': dict.fromkeys(FIELDS), 'evidence': {f: [] for f in FIELDS},
               'pages': [], 'document_issues': [], 'ambiguous': []}
     try:
@@ -110,7 +123,7 @@ def extract_pdf(content):
             for i, page in enumerate(pdf.pages, 1):
                 text = page.extract_text(x_tolerance=2, y_tolerance=3) or ''
                 result['pages'].append({'number': i, 'text': text})
-                for field, value, source in page_evidence(page):
+                for field, value, source in page_evidence(page, labels):
                     if value.strip():
                         result['evidence'][field].append({'page': i, 'text': source, 'value': normalize(field,value)})
             if not result['pages'] or any(not p['text'].strip() for p in result['pages']):

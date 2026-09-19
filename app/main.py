@@ -14,18 +14,26 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .extraction import FIELDS, extract_pdf, normalize, validate
+from .extraction import FIELDS, configured_labels, extract_pdf, normalize, validate
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 class Review(BaseModel):
+    expected_version: int = Field(ge=1)
     fields: dict[str, str | None] = Field(default_factory=dict)
     action: str = 'save'
     note: str = Field(min_length=1, max_length=1000)
 
 
 def create_app(database=None):
+    labels = configured_labels({})
+    if label_path := os.environ.get('INVOICE_LABELS'):
+        try:
+            aliases = json.loads(Path(label_path).read_text(encoding='utf-8'))
+        except (OSError, ValueError) as exc:
+            raise ValueError('INVOICE_LABELS must point to a readable JSON alias file.') from exc
+        labels = configured_labels(aliases)
     db_path = Path(database or os.environ.get('INVOICE_DB', ROOT / 'data' / 'invoices.sqlite3'))
     db_path.parent.mkdir(parents=True, exist_ok=True)
     app = FastAPI(title='Invoice Review Desk')
@@ -45,17 +53,20 @@ def create_app(database=None):
             CREATE TABLE IF NOT EXISTS invoices (
               id INTEGER PRIMARY KEY, filename TEXT NOT NULL, digest TEXT NOT NULL,
               pdf BLOB NOT NULL, extracted TEXT NOT NULL, fields TEXT NOT NULL,
-              resolved TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'pending', created TEXT NOT NULL);
+              resolved TEXT NOT NULL DEFAULT '[]', status TEXT NOT NULL DEFAULT 'pending', created TEXT NOT NULL,
+              revision INTEGER NOT NULL DEFAULT 1);
             CREATE TABLE IF NOT EXISTS events (
               id INTEGER PRIMARY KEY, invoice_id INTEGER NOT NULL, at TEXT NOT NULL,
               action TEXT NOT NULL, note TEXT NOT NULL, changes TEXT NOT NULL);
         ''')
+        if 'revision' not in {r['name'] for r in conn.execute('PRAGMA table_info(invoices)')}:
+            conn.execute('ALTER TABLE invoices ADD COLUMN revision INTEGER NOT NULL DEFAULT 1')
 
     def now():
         return datetime.now(timezone.utc).isoformat(timespec='seconds')
 
     def records(conn):
-        return [dict(r) for r in conn.execute('SELECT id, filename, digest, extracted, fields, resolved, status, created FROM invoices ORDER BY id')]
+        return [dict(r) for r in conn.execute('SELECT id, filename, digest, extracted, fields, resolved, status, created, revision FROM invoices ORDER BY id')]
 
     def key(fields):
         return tuple(' '.join((fields.get(f) or '').casefold().split()) for f in ('supplier', 'invoice_number'))
@@ -78,7 +89,7 @@ def create_app(database=None):
                 elif all(key(fields)) and key(fields) == key(json.loads(other['fields'])):
                     issues.append({'code': 'duplicate_business', 'field': 'invoice_number',
                         'message': f'Same supplier and invoice number as record #{other["id"]}. Check both documents and reject the extra copy.'})
-        return {'id': row['id'], 'filename': row['filename'], 'created': row['created'], 'status': row['status'],
+        return {'id': row['id'], 'filename': row['filename'], 'created': row['created'], 'status': row['status'], 'revision': row['revision'],
                 'fields': fields, 'original_fields': original['fields'], 'evidence': original['evidence'],
                 'pages': original['pages'], 'issues': issues, 'exportable': row['status'] == 'confirmed' and not issues}
 
@@ -101,7 +112,7 @@ def create_app(database=None):
             raise HTTPException(413, 'Maximum file size is 10 MB.')
         if not content.startswith(b'%PDF-'):
             raise HTTPException(415, 'Only PDF files are accepted.')
-        parsed = extract_pdf(content)
+        parsed = extract_pdf(content, labels)
         filename = (file.filename or 'invoice.pdf').replace('\\', '/').split('/')[-1]
         with db() as conn:
             cursor = conn.execute('INSERT INTO invoices(filename,digest,pdf,extracted,fields,created) VALUES(?,?,?,?,?,?)',
@@ -129,6 +140,10 @@ def create_app(database=None):
         with db() as conn:
             conn.execute('BEGIN IMMEDIATE')
             row = get_row(conn, invoice_id)
+            if row['revision'] != request.expected_version:
+                raise HTTPException(409, {'code': 'version_conflict',
+                    'message': 'This invoice changed in another tab. Review the latest saved values before saving again.',
+                    'current': present(row, records(conn))})
             old = json.loads(row['fields'])
             new = old | {f: normalize(f, v) for f, v in request.fields.items()}
             changes = {f: {'before': old[f], 'after': new[f]} for f in FIELDS if old[f] != new[f]}
@@ -139,7 +154,7 @@ def create_app(database=None):
             check = present(candidate, records(conn))
             if request.action == 'confirm' and check['issues']:
                 raise HTTPException(409, {'message': 'Confirmation blocked. Resolve these issues first.', 'issues': check['issues']})
-            conn.execute('UPDATE invoices SET fields=?, resolved=?, status=? WHERE id=?',
+            conn.execute('UPDATE invoices SET fields=?, resolved=?, status=?, revision=revision+1 WHERE id=?',
                 (candidate['fields'], candidate['resolved'], status, invoice_id))
             conn.execute('INSERT INTO events(invoice_id,at,action,note,changes) VALUES(?,?,?,?,?)',
                 (invoice_id, now(), request.action, request.note.strip(), json.dumps(changes)))
