@@ -1,6 +1,8 @@
-# Invoice Review Desk · 发票核对工作台
+# PDF Invoice Reviewer · 发票核对工具
 
 [English](README.md) · [评测与失败案例](docs/evaluation.md) · [合成 PDF](fixtures)
+
+项目仓库：[myp81607-dot/pdf-invoice-reviewer](https://github.com/myp81607-dot/pdf-invoice-reviewer)。本地应用界面名称为 Invoice Review Desk。
 
 **为需要把供应商 PDF 整理成表格的小型运营团队而做。** 上传带文本的发票，将提取字段与原始页面并排核对，处理缺项或金额不符，再由人确认。下载的 CSV 只包含“已确认且当前校验仍通过”的记录。
 
@@ -10,9 +12,11 @@
 
 ## 五分钟启动
 
-需要 Python 3.11+；实测环境为 Windows、Python 3.12.14。在仓库目录执行：
+需要 Git 和 Python 3.11+；实测环境为 Windows、Python 3.12.14：
 
 ```bash
+git clone https://github.com/myp81607-dot/pdf-invoice-reviewer.git
+cd pdf-invoice-reviewer
 python -m venv .venv
 # Windows PowerShell：
 .venv\Scripts\Activate.ps1

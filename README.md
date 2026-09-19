@@ -1,6 +1,8 @@
-# Invoice Review Desk
+# PDF Invoice Reviewer
 
 [简体中文](README.zh-CN.md) · [Evaluation & failure cases](docs/evaluation.md) · [Sample PDFs](fixtures)
+
+Repository: [myp81607-dot/pdf-invoice-reviewer](https://github.com/myp81607-dot/pdf-invoice-reviewer). The local app is called Invoice Review Desk.
 
 **For a small operations team that needs supplier PDFs in a spreadsheet without silently copying bad numbers.** Upload a text-based invoice, compare the extracted fields with the original page, resolve missing values or mismatches, and confirm it. Download a CSV containing only invoices that are both confirmed and currently valid.
 
@@ -10,9 +12,11 @@ Personal portfolio demonstration using synthetic invoices. No client data, payme
 
 ## Try it in five minutes
 
-Requires Python 3.11+; verified on Python 3.12.14 / Windows. Run from this repository:
+Requires Git and Python 3.11+; verified on Python 3.12.14 / Windows:
 
 ```bash
+git clone https://github.com/myp81607-dot/pdf-invoice-reviewer.git
+cd pdf-invoice-reviewer
 python -m venv .venv
 # Windows PowerShell:
 .venv\Scripts\Activate.ps1
